@@ -1,6 +1,7 @@
 import { Link, useLocation } from "react-router-dom";
-import { Home, Search, PlusSquare, Bell, User, Settings, LogOut } from "lucide-react";
+import { Home, Search, PlusSquare, Bell, User, Settings } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useUnreadCount } from "@/hooks/use-notifications";
 
 const mainNav = [
   { to: "/", icon: Home, label: "Home" },
@@ -16,6 +17,7 @@ const bottomNav = [
 
 export function DesktopSidebar() {
   const { pathname } = useLocation();
+  const { data: unreadCount = 0 } = useUnreadCount();
 
   return (
     <aside className="hidden md:flex flex-col fixed inset-y-0 start-0 z-40 w-64 border-e border-border bg-sidebar">
@@ -31,6 +33,7 @@ export function DesktopSidebar() {
       <nav className="flex-1 px-3 py-4 space-y-1">
         {mainNav.map(({ to, icon: Icon, label }) => {
           const active = pathname === to;
+          const showBadge = to === "/notifications" && unreadCount > 0;
           return (
             <Link
               key={to}
@@ -42,7 +45,14 @@ export function DesktopSidebar() {
                   : "text-sidebar-foreground/70 hover:bg-sidebar-accent/50 hover:text-sidebar-foreground"
               )}
             >
-              <Icon className="h-5 w-5" strokeWidth={active ? 2.5 : 2} />
+              <div className="relative">
+                <Icon className="h-5 w-5" strokeWidth={active ? 2.5 : 2} />
+                {showBadge && (
+                  <span className="absolute -top-1.5 -end-1.5 h-4 min-w-4 px-1 rounded-full bg-accent text-accent-foreground text-[10px] font-bold flex items-center justify-center">
+                    {unreadCount > 9 ? "9+" : unreadCount}
+                  </span>
+                )}
+              </div>
               {label}
             </Link>
           );
