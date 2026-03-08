@@ -3,7 +3,8 @@ import { PageHeader } from "@/components/layout/PageHeader";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { UserAvatar } from "@/components/shared/UserAvatar";
-import { Image, X } from "lucide-react";
+import { cn } from "@/lib/utils";
+import { Image } from "lucide-react";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 
