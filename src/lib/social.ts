@@ -72,7 +72,7 @@ export async function getPendingRequests(userId: string) {
     .from("follows")
     .select(`
       id, created_at,
-      profiles!follows_follower_id_fkey(user_id, display_name, handle, avatar_url, bio)
+      profiles!follows_follower_id_profiles_fkey(user_id, display_name, handle, avatar_url, bio)
     `)
     .eq("following_id", userId)
     .eq("status", "pending")
