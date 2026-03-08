@@ -1,11 +1,13 @@
+import { useState } from "react";
 import { AppShell } from "@/components/layout/AppShell";
 import { PageHeader } from "@/components/layout/PageHeader";
-import { Button } from "@/components/ui/button";
 import { Moon, Sun, Globe, ChevronRight, Shield, Bell, UserCircle, LogOut } from "lucide-react";
 import { useTheme } from "@/contexts/ThemeContext";
 import { useDirection } from "@/contexts/DirectionContext";
 import { useAuth } from "@/contexts/AuthContext";
 import { useNavigate } from "react-router-dom";
+import { GitHubConnector } from "@/components/settings/GitHubConnector";
+import { cn } from "@/lib/utils";
 
 function SettingRow({ icon: Icon, label, value, onClick }: { icon: any; label: string; value?: string; onClick?: () => void }) {
   return (
@@ -18,6 +20,34 @@ function SettingRow({ icon: Icon, label, value, onClick }: { icon: any; label: s
       {value && <span className="text-body-xs text-muted-foreground">{value}</span>}
       <ChevronRight className="h-4 w-4 text-muted-foreground" />
     </button>
+  );
+}
+
+const CONNECTOR_TABS = ["GitHub"] as const;
+type ConnectorTab = typeof CONNECTOR_TABS[number];
+
+function ConnectorTabs() {
+  const [activeTab, setActiveTab] = useState<ConnectorTab>("GitHub");
+  return (
+    <div>
+      <div className="flex gap-1 px-4 pt-1 pb-2 border-b border-border">
+        {CONNECTOR_TABS.map((tab) => (
+          <button
+            key={tab}
+            onClick={() => setActiveTab(tab)}
+            className={cn(
+              "px-3 py-1.5 rounded-md text-body-xs font-medium transition-colors",
+              activeTab === tab
+                ? "bg-muted text-foreground"
+                : "text-muted-foreground hover:text-foreground"
+            )}
+          >
+            {tab}
+          </button>
+        ))}
+      </div>
+      {activeTab === "GitHub" && <GitHubConnector />}
+    </div>
   );
 }
 
@@ -71,6 +101,10 @@ const SettingsPage = () => {
             value={lang === "en" ? "English" : "العربية"}
             onClick={toggleLang}
           />
+        </div>
+        <div className="border-t border-border py-2">
+          <p className="px-4 py-2 text-body-xs font-semibold text-muted-foreground uppercase tracking-wider">Connectors</p>
+          <ConnectorTabs />
         </div>
         <div className="border-t border-border py-2">
           <button
