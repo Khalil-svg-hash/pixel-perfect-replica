@@ -118,7 +118,7 @@ export function PostCard({ post, currentUserId, onLike, onDelete, className }: P
           </div>
 
           {/* Content */}
-          <p className="text-body-sm mt-1 whitespace-pre-wrap break-words">{post.content}</p>
+          <RichText text={post.content} className="text-body-sm mt-1 whitespace-pre-wrap break-words block" />
 
           {/* Media */}
           <MediaGrid media={post.post_media} />

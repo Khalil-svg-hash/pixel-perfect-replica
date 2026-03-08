@@ -66,8 +66,11 @@ function useDebounce(value: string, delay: number) {
 }
 
 const SearchPage = () => {
-  const [query, setQuery] = useState("");
-  const [tab, setTab] = useState<"users" | "posts">("users");
+  const [searchParams] = useSearchParams();
+  const initialQuery = searchParams.get("q") || "";
+  const initialTab = (searchParams.get("tab") as "users" | "posts") || "users";
+  const [query, setQuery] = useState(initialQuery);
+  const [tab, setTab] = useState<"users" | "posts">(initialTab);
   const debouncedQuery = useDebounce(query.trim(), 300);
   const { user } = useAuth();
   const queryClient = useQueryClient();
