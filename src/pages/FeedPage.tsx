@@ -1,47 +1,76 @@
+import { useInfiniteQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { fetchFeedPosts, toggleLike, deletePost } from "@/lib/posts";
+import { useAuth } from "@/contexts/AuthContext";
 import { AppShell } from "@/components/layout/AppShell";
 import { FeedLayout } from "@/components/layout/FeedLayout";
 import { PageHeader } from "@/components/layout/PageHeader";
-import { PostCard, PostData } from "@/components/shared/PostCard";
+import { PostCard } from "@/components/shared/PostCard";
 import { EmptyState } from "@/components/shared/EmptyState";
 import { FeedSkeleton } from "@/components/shared/Skeletons";
-import { Newspaper } from "lucide-react";
-import { useState } from "react";
-
-const mockPosts: PostData[] = [
-  {
-    id: "1",
-    author: { name: "Sarah Chen", handle: "sarahc", avatarUrl: undefined },
-    content: "Just shipped a new feature that I've been working on for weeks. The feeling of seeing it live is unmatched 🚀\n\n#buildinpublic #devlife",
-    likes: 42,
-    comments: 8,
-    shares: 3,
-    isLiked: true,
-    createdAt: new Date(Date.now() - 3600000).toISOString(),
-  },
-  {
-    id: "2",
-    author: { name: "Alex Rivera", handle: "alexr", avatarUrl: undefined },
-    content: "Hot take: The best code is the code you delete. Removed 2,000 lines today and everything still works perfectly. Less is more.",
-    likes: 128,
-    comments: 24,
-    shares: 15,
-    createdAt: new Date(Date.now() - 7200000).toISOString(),
-  },
-  {
-    id: "3",
-    author: { name: "Maya Johnson", handle: "mayaj", avatarUrl: undefined },
-    content: "Morning coffee + good music + clean codebase = productive Monday ☕️\n\nWhat's your ideal work setup?",
-    likes: 67,
-    comments: 31,
-    shares: 2,
-    isEdited: true,
-    createdAt: new Date(Date.now() - 14400000).toISOString(),
-  },
-];
+import { Button } from "@/components/ui/button";
+import { Newspaper, Loader2 } from "lucide-react";
+import { useNavigate } from "react-router-dom";
+import { useEffect, useRef, useCallback } from "react";
+import { useToast } from "@/hooks/use-toast";
 
 const FeedPage = () => {
-  const [posts] = useState<PostData[]>(mockPosts);
-  const isLoading = false;
+  const { user } = useAuth();
+  const navigate = useNavigate();
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
+  const observerRef = useRef<IntersectionObserver | null>(null);
+  const loadMoreRef = useRef<HTMLDivElement | null>(null);
+
+  const {
+    data,
+    isLoading,
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage,
+  } = useInfiniteQuery({
+    queryKey: ["feed"],
+    queryFn: ({ pageParam = 0 }) => fetchFeedPosts(pageParam),
+    getNextPageParam: (lastPage, allPages) => {
+      return lastPage.length === 10 ? allPages.length : undefined;
+    },
+    initialPageParam: 0,
+  });
+
+  const likeMutation = useMutation({
+    mutationFn: ({ postId, isLiked }: { postId: string; isLiked: boolean }) =>
+      toggleLike(postId, user!.id, isLiked),
+    onError: () => {
+      queryClient.invalidateQueries({ queryKey: ["feed"] });
+    },
+  });
+
+  const deleteMutation = useMutation({
+    mutationFn: deletePost,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["feed"] });
+      toast({ title: "Post deleted" });
+    },
+    onError: (err: any) => {
+      toast({ title: "Error", description: err.message, variant: "destructive" });
+    },
+  });
+
+  // Infinite scroll observer
+  const lastPostRef = useCallback(
+    (node: HTMLDivElement | null) => {
+      if (isFetchingNextPage) return;
+      if (observerRef.current) observerRef.current.disconnect();
+      observerRef.current = new IntersectionObserver((entries) => {
+        if (entries[0].isIntersecting && hasNextPage) {
+          fetchNextPage();
+        }
+      });
+      if (node) observerRef.current.observe(node);
+    },
+    [isFetchingNextPage, hasNextPage, fetchNextPage]
+  );
+
+  const posts = data?.pages.flatMap((page) => page) || [];
 
   return (
     <AppShell>
@@ -60,10 +89,6 @@ const FeedPage = () => {
                 ))}
               </div>
             </div>
-            <div className="p-4 rounded-xl bg-card border border-border">
-              <h3 className="font-display text-display-sm mb-3">Who to follow</h3>
-              <p className="text-body-xs text-muted-foreground">Coming soon</p>
-            </div>
           </div>
         }
       >
@@ -73,14 +98,29 @@ const FeedPage = () => {
           <EmptyState
             icon={Newspaper}
             title="Your feed is empty"
-            description="Follow people to see their posts here, or create your first post."
-            action={{ label: "Create Post", onClick: () => {} }}
+            description="Create your first post or follow people to see their posts here."
+            action={{ label: "Create Post", onClick: () => navigate("/compose") }}
           />
         ) : (
           <div>
-            {posts.map((post) => (
-              <PostCard key={post.id} post={post} />
+            {posts.map((post, index) => (
+              <div
+                key={post.id}
+                ref={index === posts.length - 1 ? lastPostRef : undefined}
+              >
+                <PostCard
+                  post={post}
+                  currentUserId={user?.id}
+                  onLike={(postId, isLiked) => likeMutation.mutate({ postId, isLiked })}
+                  onDelete={(postId) => deleteMutation.mutate(postId)}
+                />
+              </div>
             ))}
+            {isFetchingNextPage && (
+              <div className="flex justify-center py-6">
+                <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+              </div>
+            )}
           </div>
         )}
       </FeedLayout>
