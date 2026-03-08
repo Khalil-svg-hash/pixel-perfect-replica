@@ -1,6 +1,7 @@
 import { Heart, MessageCircle, Share2, MoreHorizontal, Trash2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { UserAvatar } from "./UserAvatar";
+import { RichText } from "./RichText";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
