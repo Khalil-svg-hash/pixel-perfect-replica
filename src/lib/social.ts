@@ -97,7 +97,7 @@ export async function getFollowing(userId: string, page = 0, pageSize = 20): Pro
   const from = page * pageSize;
   const { data, error } = await supabase
     .from("follows")
-    .select(`profiles!follows_following_id_fkey(user_id, display_name, handle, avatar_url, bio)`)
+    .select(`profiles!follows_following_id_profiles_fkey(user_id, display_name, handle, avatar_url, bio)`)
     .eq("follower_id", userId)
     .eq("status", "accepted")
     .range(from, from + pageSize - 1);
