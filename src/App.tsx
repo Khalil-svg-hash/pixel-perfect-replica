@@ -48,6 +48,7 @@ const App = () => (
                 <Route path="/settings" element={<ProtectedRoute><SettingsPage /></ProtectedRoute>} />
                 <Route path="/compose" element={<ProtectedRoute><ComposePage /></ProtectedRoute>} />
                 <Route path="/edit-profile" element={<ProtectedRoute><EditProfilePage /></ProtectedRoute>} />
+                <Route path="/followers/:userId" element={<ProtectedRoute><FollowListPage /></ProtectedRoute>} />
 
                 <Route path="*" element={<NotFound />} />
               </Routes>
