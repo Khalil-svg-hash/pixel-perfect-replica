@@ -14,6 +14,51 @@ export type Database = {
   }
   public: {
     Tables: {
+      blocks: {
+        Row: {
+          blocked_id: string
+          blocker_id: string
+          created_at: string
+          id: string
+        }
+        Insert: {
+          blocked_id: string
+          blocker_id: string
+          created_at?: string
+          id?: string
+        }
+        Update: {
+          blocked_id?: string
+          blocker_id?: string
+          created_at?: string
+          id?: string
+        }
+        Relationships: []
+      }
+      follows: {
+        Row: {
+          created_at: string
+          follower_id: string
+          following_id: string
+          id: string
+          status: string
+        }
+        Insert: {
+          created_at?: string
+          follower_id: string
+          following_id: string
+          id?: string
+          status?: string
+        }
+        Update: {
+          created_at?: string
+          follower_id?: string
+          following_id?: string
+          id?: string
+          status?: string
+        }
+        Relationships: []
+      }
       likes: {
         Row: {
           created_at: string
@@ -179,6 +224,13 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      get_follow_counts: {
+        Args: { _user_id: string }
+        Returns: {
+          followers_count: number
+          following_count: number
+        }[]
+      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
