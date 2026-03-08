@@ -4,9 +4,12 @@ import { UserAvatar } from "@/components/shared/UserAvatar";
 import { Button } from "@/components/ui/button";
 import { Settings, MapPin, Calendar, Link as LinkIcon } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { useAuth } from "@/contexts/AuthContext";
+import { format } from "date-fns";
 
 const ProfilePage = () => {
   const navigate = useNavigate();
+  const { profile } = useAuth();
 
   return (
     <AppShell>
@@ -25,28 +28,38 @@ const ProfilePage = () => {
         {/* Profile info */}
         <div className="px-4 -mt-10">
           <div className="flex items-end justify-between mb-3">
-            <UserAvatar name="You" size="xl" className="border-4 border-background" />
+            <UserAvatar
+              name={profile?.display_name || "You"}
+              src={profile?.avatar_url}
+              size="xl"
+              className="border-4 border-background"
+            />
             <Button variant="outline" size="sm" className="mb-1">
               Edit Profile
             </Button>
           </div>
 
-          <h2 className="font-display text-display-md">Your Name</h2>
-          <p className="text-body-sm text-muted-foreground">@username</p>
+          <h2 className="font-display text-display-md">{profile?.display_name || "Your Name"}</h2>
+          <p className="text-body-sm text-muted-foreground">@{profile?.handle || "username"}</p>
 
           <p className="text-body-sm mt-3">
-            Welcome to your profile! Edit your bio to tell people about yourself.
+            {profile?.bio || "Welcome to your profile! Edit your bio to tell people about yourself."}
           </p>
 
           <div className="flex flex-wrap gap-4 mt-3 text-body-xs text-muted-foreground">
+            {profile?.location && (
+              <span className="flex items-center gap-1">
+                <MapPin className="h-3.5 w-3.5" /> {profile.location}
+              </span>
+            )}
+            {profile?.website && (
+              <span className="flex items-center gap-1">
+                <LinkIcon className="h-3.5 w-3.5" /> {profile.website}
+              </span>
+            )}
             <span className="flex items-center gap-1">
-              <MapPin className="h-3.5 w-3.5" /> Location
-            </span>
-            <span className="flex items-center gap-1">
-              <LinkIcon className="h-3.5 w-3.5" /> website.com
-            </span>
-            <span className="flex items-center gap-1">
-              <Calendar className="h-3.5 w-3.5" /> Joined March 2026
+              <Calendar className="h-3.5 w-3.5" /> Joined{" "}
+              {profile?.created_at ? format(new Date(profile.created_at), "MMMM yyyy") : "recently"}
             </span>
           </div>
 
