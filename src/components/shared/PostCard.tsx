@@ -1,4 +1,4 @@
-import { Heart, MessageCircle, Share2, MoreHorizontal, Bookmark, Trash2 } from "lucide-react";
+import { Heart, MessageCircle, Share2, MoreHorizontal, Trash2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { UserAvatar } from "./UserAvatar";
 import { Button } from "@/components/ui/button";
@@ -9,6 +9,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { FeedPost } from "@/lib/posts";
+import { CommentSection } from "./CommentSection";
 import { motion, AnimatePresence } from "framer-motion";
 import { useState } from "react";
 
@@ -68,6 +69,7 @@ export function PostCard({ post, currentUserId, onLike, onDelete, className }: P
   const isLiked = post.likes?.some((l) => l.user_id === currentUserId) ?? false;
   const [optimisticLiked, setOptimisticLiked] = useState(isLiked);
   const [optimisticCount, setOptimisticCount] = useState(post.like_count);
+  const [showComments, setShowComments] = useState(false);
   const isOwner = currentUserId === post.user_id;
 
   const handleLike = () => {
@@ -76,18 +78,13 @@ export function PostCard({ post, currentUserId, onLike, onDelete, className }: P
     onLike?.(post.id, optimisticLiked);
   };
 
-  // Sync with prop changes
-  if (isLiked !== (post.likes?.some((l) => l.user_id === currentUserId) ?? false)) {
-    // Already handled by optimistic state
-  }
-
   const authorName = post.profiles?.display_name || "Unknown";
   const authorHandle = post.profiles?.handle || "user";
   const authorAvatar = post.profiles?.avatar_url;
 
   return (
-    <article className={cn("p-4 border-b border-border hover:bg-muted/30 transition-colors animate-fade-in", className)}>
-      <div className="flex gap-3">
+    <article className={cn("border-b border-border hover:bg-muted/30 transition-colors animate-fade-in", className)}>
+      <div className="p-4 flex gap-3">
         <UserAvatar src={authorAvatar} name={authorName} size="md" />
         <div className="flex-1 min-w-0">
           {/* Header */}
@@ -145,7 +142,12 @@ export function PostCard({ post, currentUserId, onLike, onDelete, className }: P
               </AnimatePresence>
               {optimisticCount > 0 && <span className="text-body-xs">{optimisticCount}</span>}
             </Button>
-            <Button variant="ghost" size="sm" className="gap-1.5 text-muted-foreground hover:text-info">
+            <Button
+              variant="ghost"
+              size="sm"
+              className={cn("gap-1.5 text-muted-foreground hover:text-info", showComments && "text-info")}
+              onClick={() => setShowComments(!showComments)}
+            >
               <MessageCircle className="h-4 w-4" />
               {post.comment_count > 0 && <span className="text-body-xs">{post.comment_count}</span>}
             </Button>
@@ -155,6 +157,21 @@ export function PostCard({ post, currentUserId, onLike, onDelete, className }: P
           </div>
         </div>
       </div>
+
+      {/* Expandable comments */}
+      <AnimatePresence>
+        {showComments && (
+          <motion.div
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: "auto", opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            transition={{ duration: 0.2 }}
+            className="overflow-hidden"
+          >
+            <CommentSection postId={post.id} />
+          </motion.div>
+        )}
+      </AnimatePresence>
     </article>
   );
 }

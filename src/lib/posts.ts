@@ -35,7 +35,8 @@ export async function fetchFeedPosts(page: number, userId?: string): Promise<Fee
       id, user_id, content, visibility, is_edited, created_at,
       profiles!inner(display_name, handle, avatar_url),
       post_media(id, url, media_type, position),
-      likes(user_id)
+      likes(user_id),
+      comments(id)
     `)
     .order("created_at", { ascending: false })
     .range(from, to);
@@ -51,7 +52,7 @@ export async function fetchFeedPosts(page: number, userId?: string): Promise<Fee
     ...post,
     post_media: (post.post_media || []).sort((a: any, b: any) => a.position - b.position),
     like_count: (post.likes || []).length,
-    comment_count: 0, // Will be implemented in Phase 6
+    comment_count: (post.comments || []).length,
   }));
 }
 
