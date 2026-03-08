@@ -51,6 +51,8 @@ const App = () => (
                 <Route path="/compose" element={<ProtectedRoute><ComposePage /></ProtectedRoute>} />
                 <Route path="/edit-profile" element={<ProtectedRoute><EditProfilePage /></ProtectedRoute>} />
                 <Route path="/followers/:userId" element={<ProtectedRoute><FollowListPage /></ProtectedRoute>} />
+                <Route path="/messages" element={<ProtectedRoute><MessagesPage /></ProtectedRoute>} />
+                <Route path="/messages/:conversationId" element={<ProtectedRoute><ChatPage /></ProtectedRoute>} />
 
                 <Route path="*" element={<NotFound />} />
               </Routes>
