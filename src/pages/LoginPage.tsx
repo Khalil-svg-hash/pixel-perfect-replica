@@ -2,10 +2,12 @@ import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
-import { Eye, EyeOff, ArrowRight } from "lucide-react";
+import { Eye, EyeOff, ArrowRight, Mail, Lock } from "lucide-react";
+import { ShimmerButton } from "@/components/ui/shimmer-button";
+import { AnimatedInput } from "@/components/ui/animated-input";
+import { DotPattern } from "@/components/ui/dot-pattern";
+import { motion } from "framer-motion";
 
 const LoginPage = () => {
   const [email, setEmail] = useState("");
@@ -32,7 +34,26 @@ const LoginPage = () => {
     <div className="flex min-h-screen">
       {/* Left panel — hero */}
       <div className="hidden lg:flex flex-1 gradient-accent relative overflow-hidden items-end p-12">
+        <DotPattern dotColor="rgba(255,255,255,0.08)" gap={32} dotSize={1.5} />
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_20%,hsl(340_72%_58%/0.4),transparent_60%)]" />
+        
+        {/* Floating orbs */}
+        <motion.div
+          className="absolute top-1/4 right-1/4 h-64 w-64 rounded-full border border-white/10"
+          animate={{ scale: [1, 1.05, 1], rotate: [0, 5, 0] }}
+          transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" }}
+        />
+        <motion.div
+          className="absolute top-1/3 right-1/3 h-48 w-48 rounded-full border border-white/5"
+          animate={{ scale: [1, 0.95, 1], rotate: [0, -3, 0] }}
+          transition={{ duration: 6, repeat: Infinity, ease: "easeInOut" }}
+        />
+        <motion.div
+          className="absolute bottom-1/4 right-12 h-32 w-32 rounded-full bg-white/5"
+          animate={{ y: [0, -12, 0] }}
+          transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
+        />
+
         <div className="absolute top-8 left-8 flex items-center gap-2.5">
           <div className="h-9 w-9 rounded-xl bg-white/20 backdrop-blur-sm flex items-center justify-center">
             <span className="text-white font-display font-bold text-sm">C</span>
@@ -40,22 +61,34 @@ const LoginPage = () => {
           <span className="font-display font-bold text-display-sm text-white">Cluster</span>
         </div>
         <div className="relative z-10 max-w-md">
-          <h2 className="font-display text-display-xl text-white mb-4">
+          <motion.h2
+            className="font-display text-display-xl text-white mb-4"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 0.2 }}
+          >
             Where ideas<br />find their people.
-          </h2>
-          <p className="text-white/70 text-body-lg">
+          </motion.h2>
+          <motion.p
+            className="text-white/70 text-body-lg"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 0.4 }}
+          >
             Join the community. Share what matters. Connect with those who care.
-          </p>
+          </motion.p>
         </div>
-        {/* Decorative circles */}
-        <div className="absolute top-1/4 right-1/4 h-64 w-64 rounded-full border border-white/10" />
-        <div className="absolute top-1/3 right-1/3 h-48 w-48 rounded-full border border-white/5" />
-        <div className="absolute bottom-1/4 right-12 h-32 w-32 rounded-full bg-white/5" />
       </div>
 
       {/* Right panel — form */}
-      <div className="flex-1 lg:max-w-lg flex items-center justify-center bg-background px-6">
-        <div className="w-full max-w-sm animate-fade-in">
+      <div className="flex-1 lg:max-w-lg flex items-center justify-center bg-background px-6 relative">
+        <DotPattern className="opacity-30" />
+        <motion.div
+          className="w-full max-w-sm relative z-10"
+          initial={{ opacity: 0, y: 24 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, ease: "easeOut" }}
+        >
           <div className="flex items-center gap-2 justify-center mb-10 lg:hidden">
             <div className="h-10 w-10 rounded-xl gradient-accent flex items-center justify-center shadow-glow">
               <span className="text-white font-display font-bold text-lg">C</span>
@@ -67,55 +100,50 @@ const LoginPage = () => {
           <p className="text-body-sm text-muted-foreground mb-8">Sign in to your account</p>
 
           <form onSubmit={handleSubmit} className="space-y-5">
-            <div className="space-y-2">
-              <Label htmlFor="email" className="text-body-xs font-medium">Email</Label>
-              <Input
-                id="email"
-                type="email"
-                placeholder="you@example.com"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
+            <AnimatedInput
+              id="email"
+              type="email"
+              label="Email"
+              icon={<Mail className="h-4 w-4" />}
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              required
+              autoComplete="email"
+            />
+
+            <div className="relative">
+              <AnimatedInput
+                id="password"
+                type={showPassword ? "text" : "password"}
+                label="Password"
+                icon={<Lock className="h-4 w-4" />}
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
                 required
-                autoComplete="email"
-                className="h-11"
+                autoComplete="current-password"
               />
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                className="absolute end-3.5 top-1/2 -translate-y-1/2 text-muted-foreground/50 hover:text-foreground transition-colors z-10"
+              >
+                {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+              </button>
             </div>
 
-            <div className="space-y-2">
-              <div className="flex items-center justify-between">
-                <Label htmlFor="password" className="text-body-xs font-medium">Password</Label>
-                <Link to="/forgot-password" className="text-body-xs text-accent hover:underline">
-                  Forgot password?
-                </Link>
-              </div>
-              <div className="relative">
-                <Input
-                  id="password"
-                  type={showPassword ? "text" : "password"}
-                  placeholder="••••••••"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  required
-                  autoComplete="current-password"
-                  className="h-11"
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowPassword(!showPassword)}
-                  className="absolute end-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
-                >
-                  {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                </button>
-              </div>
+            <div className="flex justify-end">
+              <Link to="/forgot-password" className="text-body-xs text-accent hover:underline font-medium">
+                Forgot password?
+              </Link>
             </div>
 
-            <Button
+            <ShimmerButton
               type="submit"
-              className="w-full h-11 gradient-accent text-white border-0 hover:opacity-90 shadow-accent transition-all duration-200 gap-2"
+              className="w-full"
               disabled={isLoading}
             >
               {isLoading ? "Signing in…" : <>Sign In <ArrowRight className="h-4 w-4" /></>}
-            </Button>
+            </ShimmerButton>
           </form>
 
           <p className="text-body-sm text-muted-foreground text-center mt-8">
@@ -124,7 +152,7 @@ const LoginPage = () => {
               Sign up
             </Link>
           </p>
-        </div>
+        </motion.div>
       </div>
     </div>
   );
