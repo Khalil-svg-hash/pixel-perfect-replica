@@ -40,9 +40,9 @@ const SignupPage = () => {
       <div className="w-full max-w-sm animate-fade-in">
         <div className="flex items-center gap-2 justify-center mb-8">
           <div className="h-10 w-10 rounded-xl bg-accent flex items-center justify-center">
-            <span className="text-accent-foreground font-display font-bold text-lg">S</span>
+            <span className="text-accent-foreground font-display font-bold text-lg">C</span>
           </div>
-          <span className="font-display font-bold text-display-md">Social</span>
+          <span className="font-display font-bold text-display-md">Cluster</span>
         </div>
 
         <h1 className="font-display text-display-md text-center mb-1">Create account</h1>

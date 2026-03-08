@@ -25,9 +25,9 @@ export function DesktopSidebar() {
       {/* Logo */}
       <div className="flex items-center gap-2 px-6 h-16">
         <div className="h-8 w-8 rounded-lg bg-accent flex items-center justify-center">
-          <span className="text-accent-foreground font-display font-bold text-sm">S</span>
+          <span className="text-accent-foreground font-display font-bold text-sm">C</span>
         </div>
-        <span className="font-display font-bold text-display-sm text-sidebar-foreground">Social</span>
+        <span className="font-display font-bold text-display-sm text-sidebar-foreground">Cluster</span>
       </div>
 
       {/* Main nav */}
