@@ -7,6 +7,7 @@ const mainNav = [
   { to: "/", icon: Home, label: "Home" },
   { to: "/search", icon: Search, label: "Search" },
   { to: "/compose", icon: PlusSquare, label: "Create" },
+  { to: "/messages", icon: MessageSquare, label: "Messages" },
   { to: "/notifications", icon: Bell, label: "Notifications" },
   { to: "/profile", icon: User, label: "Profile" },
 ];
