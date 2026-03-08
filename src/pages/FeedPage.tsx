@@ -7,11 +7,16 @@ import { PageHeader } from "@/components/layout/PageHeader";
 import { PostCard } from "@/components/shared/PostCard";
 import { EmptyState } from "@/components/shared/EmptyState";
 import { FeedSkeleton } from "@/components/shared/Skeletons";
-import { Button } from "@/components/ui/button";
+import { ComposePrompt } from "@/components/feed/ComposePrompt";
+import { StoriesRow } from "@/components/feed/StoriesRow";
+import { TrendingSidebar } from "@/components/feed/TrendingSidebar";
 import { Newspaper, Loader2 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import { useEffect, useRef, useCallback } from "react";
+import { useRef, useCallback } from "react";
 import { useToast } from "@/hooks/use-toast";
+import { AnimatedBadge } from "@/components/ui/animated-badge";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { useState } from "react";
 
 const FeedPage = () => {
   const { user } = useAuth();
@@ -19,7 +24,7 @@ const FeedPage = () => {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const observerRef = useRef<IntersectionObserver | null>(null);
-  const loadMoreRef = useRef<HTMLDivElement | null>(null);
+  const [feedTab, setFeedTab] = useState("foryou");
 
   const {
     data,
@@ -55,7 +60,6 @@ const FeedPage = () => {
     },
   });
 
-  // Infinite scroll observer
   const lastPostRef = useCallback(
     (node: HTMLDivElement | null) => {
       if (isFetchingNextPage) return;
@@ -74,24 +78,43 @@ const FeedPage = () => {
 
   return (
     <AppShell>
-      <PageHeader title="Home" />
-      <FeedLayout
-        sidebar={
-          <div className="space-y-4">
-            <div className="p-4 rounded-xl bg-card border border-border">
-              <h3 className="font-display text-display-sm mb-3">Trending</h3>
-              <div className="space-y-3">
-                {["#buildinpublic", "#devlife", "#opensource"].map((tag) => (
-                  <div key={tag} className="text-body-sm">
-                    <span className="font-semibold text-accent">{tag}</span>
-                    <p className="text-body-xs text-muted-foreground">{Math.floor(Math.random() * 500 + 100)} posts</p>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
+      <PageHeader
+        title="Home"
+        action={
+          <AnimatedBadge variant="glow" className="text-[10px]">
+            ✨ New
+          </AnimatedBadge>
         }
-      >
+      />
+
+      {/* Feed tabs */}
+      <div className="border-b border-border/40">
+        <Tabs value={feedTab} onValueChange={setFeedTab} className="w-full">
+          <TabsList className="w-full h-11 bg-transparent rounded-none border-0 p-0">
+            <TabsTrigger
+              value="foryou"
+              className="flex-1 rounded-none h-11 border-b-2 data-[state=active]:border-accent data-[state=active]:text-accent data-[state=inactive]:border-transparent font-display font-semibold text-body-sm bg-transparent data-[state=active]:bg-transparent data-[state=active]:shadow-none"
+            >
+              For You
+            </TabsTrigger>
+            <TabsTrigger
+              value="following"
+              className="flex-1 rounded-none h-11 border-b-2 data-[state=active]:border-accent data-[state=active]:text-accent data-[state=inactive]:border-transparent font-display font-semibold text-body-sm bg-transparent data-[state=active]:bg-transparent data-[state=active]:shadow-none"
+            >
+              Following
+            </TabsTrigger>
+          </TabsList>
+        </Tabs>
+      </div>
+
+      <FeedLayout sidebar={<TrendingSidebar />}>
+        {/* Stories row */}
+        <StoriesRow />
+
+        {/* Compose prompt */}
+        <ComposePrompt />
+
+        {/* Feed content */}
         {isLoading ? (
           <FeedSkeleton />
         ) : posts.length === 0 ? (
