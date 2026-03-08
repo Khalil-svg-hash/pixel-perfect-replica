@@ -33,7 +33,7 @@ export async function fetchFeedPosts(page: number, userId?: string): Promise<Fee
     .from("posts")
     .select(`
       id, user_id, content, visibility, is_edited, created_at,
-      profiles!inner(display_name, handle, avatar_url),
+      profiles!posts_user_id_profiles_fkey(display_name, handle, avatar_url),
       post_media(id, url, media_type, position),
       likes(user_id),
       comments(id)
