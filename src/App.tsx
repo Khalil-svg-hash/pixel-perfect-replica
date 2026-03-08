@@ -17,6 +17,7 @@ import LoginPage from "./pages/LoginPage";
 import SignupPage from "./pages/SignupPage";
 import ForgotPasswordPage from "./pages/ForgotPasswordPage";
 import ResetPasswordPage from "./pages/ResetPasswordPage";
+import EditProfilePage from "./pages/EditProfilePage";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
