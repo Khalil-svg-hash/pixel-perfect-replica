@@ -2,28 +2,38 @@ import { AppShell } from "@/components/layout/AppShell";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { UserAvatar } from "@/components/shared/UserAvatar";
 import { Button } from "@/components/ui/button";
-import { Settings, MapPin, Calendar, Link as LinkIcon } from "lucide-react";
-import { useNavigate } from "react-router-dom";
+import { Settings, MapPin, Calendar, Link as LinkIcon, Lock } from "lucide-react";
+import { useNavigate, useParams } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { format } from "date-fns";
 
 const ProfilePage = () => {
   const navigate = useNavigate();
+  const { handle } = useParams();
   const { profile } = useAuth();
+
+  // For now, only show own profile (other users' profiles come in Phase 5)
+  const isOwnProfile = !handle;
 
   return (
     <AppShell>
       <PageHeader
         title="Profile"
         action={
-          <Button variant="ghost" size="icon" onClick={() => navigate("/settings")}>
-            <Settings className="h-5 w-5" />
-          </Button>
+          isOwnProfile && (
+            <Button variant="ghost" size="icon" onClick={() => navigate("/settings")}>
+              <Settings className="h-5 w-5" />
+            </Button>
+          )
         }
       />
       <div className="max-w-2xl mx-auto">
         {/* Cover */}
-        <div className="h-36 bg-gradient-to-br from-accent/30 to-accent/10" />
+        <div className="h-36 bg-gradient-to-br from-accent/30 to-accent/10 overflow-hidden">
+          {profile?.cover_url && (
+            <img src={profile.cover_url} alt="" className="w-full h-full object-cover" />
+          )}
+        </div>
 
         {/* Profile info */}
         <div className="px-4 -mt-10">
@@ -34,17 +44,33 @@ const ProfilePage = () => {
               size="xl"
               className="border-4 border-background"
             />
-            <Button variant="outline" size="sm" className="mb-1">
-              Edit Profile
-            </Button>
+            {isOwnProfile ? (
+              <Button variant="outline" size="sm" className="mb-1" onClick={() => navigate("/edit-profile")}>
+                Edit Profile
+              </Button>
+            ) : (
+              <Button size="sm" className="mb-1 bg-accent text-accent-foreground hover:bg-accent/90">
+                Follow
+              </Button>
+            )}
           </div>
 
-          <h2 className="font-display text-display-md">{profile?.display_name || "Your Name"}</h2>
+          <div className="flex items-center gap-2">
+            <h2 className="font-display text-display-md">{profile?.display_name || "Your Name"}</h2>
+            {profile?.is_private && (
+              <Lock className="h-4 w-4 text-muted-foreground" />
+            )}
+          </div>
           <p className="text-body-sm text-muted-foreground">@{profile?.handle || "username"}</p>
 
-          <p className="text-body-sm mt-3">
-            {profile?.bio || "Welcome to your profile! Edit your bio to tell people about yourself."}
-          </p>
+          {profile?.bio && (
+            <p className="text-body-sm mt-3">{profile.bio}</p>
+          )}
+          {!profile?.bio && isOwnProfile && (
+            <p className="text-body-sm mt-3 text-muted-foreground italic">
+              Add a bio to tell people about yourself
+            </p>
+          )}
 
           <div className="flex flex-wrap gap-4 mt-3 text-body-xs text-muted-foreground">
             {profile?.location && (
@@ -53,9 +79,14 @@ const ProfilePage = () => {
               </span>
             )}
             {profile?.website && (
-              <span className="flex items-center gap-1">
-                <LinkIcon className="h-3.5 w-3.5" /> {profile.website}
-              </span>
+              <a
+                href={profile.website.startsWith("http") ? profile.website : `https://${profile.website}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center gap-1 text-accent hover:underline"
+              >
+                <LinkIcon className="h-3.5 w-3.5" /> {profile.website.replace(/^https?:\/\//, "")}
+              </a>
             )}
             <span className="flex items-center gap-1">
               <Calendar className="h-3.5 w-3.5" /> Joined{" "}
@@ -69,7 +100,7 @@ const ProfilePage = () => {
           </div>
         </div>
 
-        {/* Posts tab placeholder */}
+        {/* Posts tab */}
         <div className="border-t border-border mt-4">
           <div className="flex">
             <button className="flex-1 py-3 text-body-sm font-semibold text-center border-b-2 border-accent text-accent">
