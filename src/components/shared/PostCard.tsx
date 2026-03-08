@@ -84,7 +84,15 @@ export function PostCard({ post, currentUserId, onLike, onDelete, className }: P
   const authorAvatar = post.profiles?.avatar_url;
 
   return (
-    <article className={cn("border-b border-border/60 transition-colors duration-200 hover:bg-muted/20 animate-fade-in", className)}>
+    <motion.article
+      className={cn(
+        "border-b border-border/40 transition-colors duration-200 hover:bg-muted/20",
+        className
+      )}
+      initial={{ opacity: 0, y: 12 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.3 }}
+    >
       <div className="p-4 flex gap-3">
         <UserAvatar src={authorAvatar} name={authorName} size="md" />
         <div className="flex-1 min-w-0">
@@ -92,21 +100,21 @@ export function PostCard({ post, currentUserId, onLike, onDelete, className }: P
           <div className="flex items-center gap-1.5 flex-wrap">
             <span className="font-display font-semibold text-body-sm truncate">{authorName}</span>
             <span className="text-body-xs text-muted-foreground truncate">@{authorHandle}</span>
-            <span className="text-body-xs text-muted-foreground/60">· {formatTime(post.created_at)}</span>
+            <span className="text-body-xs text-muted-foreground/50">· {formatTime(post.created_at)}</span>
             {post.is_edited && (
-              <span className="text-body-xs text-muted-foreground/50 italic">(edited)</span>
+              <span className="text-body-xs text-muted-foreground/40 italic">(edited)</span>
             )}
 
             {isOwner && (
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" size="icon" className="ms-auto h-7 w-7 text-muted-foreground/50 hover:text-muted-foreground">
+                  <Button variant="ghost" size="icon" className="ms-auto h-7 w-7 text-muted-foreground/40 hover:text-muted-foreground rounded-full">
                     <MoreHorizontal className="h-4 w-4" />
                   </Button>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent align="end">
+                <DropdownMenuContent align="end" className="rounded-xl shadow-lg">
                   <DropdownMenuItem
-                    className="text-destructive focus:text-destructive"
+                    className="text-destructive focus:text-destructive rounded-lg"
                     onClick={() => onDelete?.(post.id)}
                   >
                     <Trash2 className="h-4 w-4 me-2" />
@@ -124,47 +132,59 @@ export function PostCard({ post, currentUserId, onLike, onDelete, className }: P
           <MediaGrid media={post.post_media} />
 
           {/* Actions */}
-          <div className="flex items-center gap-0.5 mt-3 -ms-2.5">
-            <Button
-              variant="ghost"
-              size="sm"
-              className={cn(
-                "gap-1.5 text-muted-foreground/60 hover:text-accent hover:bg-accent/8 rounded-full h-8 px-3 transition-all",
-                optimisticLiked && "text-accent"
-              )}
-              onClick={handleLike}
-            >
-              <AnimatePresence mode="wait">
-                <motion.div
-                  key={optimisticLiked ? "liked" : "unliked"}
-                  initial={{ scale: 0.5 }}
-                  animate={{ scale: 1 }}
-                  transition={{ type: "spring", stiffness: 500, damping: 15 }}
-                >
-                  <Heart className={cn("h-[15px] w-[15px]", optimisticLiked && "fill-current")} />
-                </motion.div>
-              </AnimatePresence>
-              {optimisticCount > 0 && <span className="text-body-xs">{optimisticCount}</span>}
-            </Button>
-            <Button
-              variant="ghost"
-              size="sm"
-              className={cn(
-                "gap-1.5 text-muted-foreground/60 hover:text-info hover:bg-info/8 rounded-full h-8 px-3 transition-all",
-                showComments && "text-info"
-              )}
-              onClick={() => setShowComments(!showComments)}
-            >
-              <MessageCircle className="h-[15px] w-[15px]" />
-              {post.comment_count > 0 && <span className="text-body-xs">{post.comment_count}</span>}
-            </Button>
-            <Button
-              variant="ghost"
-              size="sm"
-              className="gap-1.5 text-muted-foreground/60 hover:text-success hover:bg-success/8 rounded-full h-8 px-3 transition-all"
-            >
-              <Share2 className="h-[15px] w-[15px]" />
-            </Button>
+          <div className="flex items-center gap-1 mt-3 -ms-2.5">
+            <motion.div whileTap={{ scale: 0.85 }}>
+              <Button
+                variant="ghost"
+                size="sm"
+                className={cn(
+                  "gap-1.5 rounded-full h-8 px-3 transition-all duration-200",
+                  optimisticLiked
+                    ? "text-accent hover:bg-accent/10"
+                    : "text-muted-foreground/50 hover:text-accent hover:bg-accent/8"
+                )}
+                onClick={handleLike}
+              >
+                <AnimatePresence mode="wait">
+                  <motion.div
+                    key={optimisticLiked ? "liked" : "unliked"}
+                    initial={{ scale: 0.5 }}
+                    animate={{ scale: 1 }}
+                    transition={{ type: "spring", stiffness: 500, damping: 15 }}
+                  >
+                    <Heart className={cn("h-[15px] w-[15px]", optimisticLiked && "fill-current")} />
+                  </motion.div>
+                </AnimatePresence>
+                {optimisticCount > 0 && <span className="text-body-xs">{optimisticCount}</span>}
+              </Button>
+            </motion.div>
+
+            <motion.div whileTap={{ scale: 0.85 }}>
+              <Button
+                variant="ghost"
+                size="sm"
+                className={cn(
+                  "gap-1.5 rounded-full h-8 px-3 transition-all duration-200",
+                  showComments
+                    ? "text-info hover:bg-info/10"
+                    : "text-muted-foreground/50 hover:text-info hover:bg-info/8"
+                )}
+                onClick={() => setShowComments(!showComments)}
+              >
+                <MessageCircle className="h-[15px] w-[15px]" />
+                {post.comment_count > 0 && <span className="text-body-xs">{post.comment_count}</span>}
+              </Button>
+            </motion.div>
+
+            <motion.div whileTap={{ scale: 0.85 }}>
+              <Button
+                variant="ghost"
+                size="sm"
+                className="gap-1.5 text-muted-foreground/50 hover:text-success hover:bg-success/8 rounded-full h-8 px-3 transition-all duration-200"
+              >
+                <Share2 className="h-[15px] w-[15px]" />
+              </Button>
+            </motion.div>
           </div>
         </div>
       </div>
@@ -176,13 +196,13 @@ export function PostCard({ post, currentUserId, onLike, onDelete, className }: P
             initial={{ height: 0, opacity: 0 }}
             animate={{ height: "auto", opacity: 1 }}
             exit={{ height: 0, opacity: 0 }}
-            transition={{ duration: 0.2 }}
+            transition={{ duration: 0.25, ease: "easeOut" }}
             className="overflow-hidden"
           >
             <CommentSection postId={post.id} />
           </motion.div>
         )}
       </AnimatePresence>
-    </article>
+    </motion.article>
   );
 }
