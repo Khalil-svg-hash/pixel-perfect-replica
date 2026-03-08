@@ -97,7 +97,7 @@ function CommentItem({ comment, currentUserId, onDelete }: {
             </button>
           )}
         </div>
-        <p className="text-body-xs mt-0.5 whitespace-pre-wrap break-words">{renderContent(comment.content)}</p>
+        <RichText text={comment.content} className="text-body-xs mt-0.5 whitespace-pre-wrap break-words block" />
       </div>
     </motion.div>
   );
