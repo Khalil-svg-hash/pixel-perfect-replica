@@ -6,7 +6,6 @@ import { UserAvatar } from "@/components/shared/UserAvatar";
 import { cn } from "@/lib/utils";
 import { Image } from "lucide-react";
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
 
 const MAX_CHARS = 500;
 
