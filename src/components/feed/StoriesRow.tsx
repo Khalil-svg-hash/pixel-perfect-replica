@@ -27,7 +27,7 @@ async function fetchStoryUsers(currentUserId: string): Promise<StoryUser[]> {
   // Fetch users the current user follows
   const { data: following, error: followError } = await supabase
     .from("follows")
-    .select("profiles!follows_following_id_fkey(user_id, display_name, handle, avatar_url)")
+    .select("profiles!follows_following_id_profiles_fkey(user_id, display_name, handle, avatar_url)")
     .eq("follower_id", currentUserId)
     .eq("status", "accepted")
     .limit(20);
