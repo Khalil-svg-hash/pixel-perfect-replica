@@ -45,7 +45,7 @@ function MediaGrid({ media }: { media: FeedPost["post_media"] }) {
   }[Math.min(media.length, 4)];
 
   return (
-    <div className={cn("grid gap-1 rounded-xl overflow-hidden mt-3", gridClass)}>
+    <div className={cn("grid gap-0.5 rounded-2xl overflow-hidden mt-3", gridClass)}>
       {media.slice(0, 4).map((m, i) => (
         <div
           key={m.id}
@@ -84,7 +84,7 @@ export function PostCard({ post, currentUserId, onLike, onDelete, className }: P
   const authorAvatar = post.profiles?.avatar_url;
 
   return (
-    <article className={cn("border-b border-border hover:bg-muted/30 transition-colors animate-fade-in", className)}>
+    <article className={cn("border-b border-border/60 transition-colors duration-200 hover:bg-muted/20 animate-fade-in", className)}>
       <div className="p-4 flex gap-3">
         <UserAvatar src={authorAvatar} name={authorName} size="md" />
         <div className="flex-1 min-w-0">
@@ -92,15 +92,15 @@ export function PostCard({ post, currentUserId, onLike, onDelete, className }: P
           <div className="flex items-center gap-1.5 flex-wrap">
             <span className="font-display font-semibold text-body-sm truncate">{authorName}</span>
             <span className="text-body-xs text-muted-foreground truncate">@{authorHandle}</span>
-            <span className="text-body-xs text-muted-foreground">· {formatTime(post.created_at)}</span>
+            <span className="text-body-xs text-muted-foreground/60">· {formatTime(post.created_at)}</span>
             {post.is_edited && (
-              <span className="text-body-xs text-muted-foreground italic">(edited)</span>
+              <span className="text-body-xs text-muted-foreground/50 italic">(edited)</span>
             )}
 
             {isOwner && (
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" size="icon" className="ms-auto h-8 w-8 text-muted-foreground">
+                  <Button variant="ghost" size="icon" className="ms-auto h-7 w-7 text-muted-foreground/50 hover:text-muted-foreground">
                     <MoreHorizontal className="h-4 w-4" />
                   </Button>
                 </DropdownMenuTrigger>
@@ -118,17 +118,20 @@ export function PostCard({ post, currentUserId, onLike, onDelete, className }: P
           </div>
 
           {/* Content */}
-          <RichText text={post.content} className="text-body-sm mt-1 whitespace-pre-wrap break-words block" />
+          <RichText text={post.content} className="text-body-sm mt-1.5 whitespace-pre-wrap break-words block leading-relaxed" />
 
           {/* Media */}
           <MediaGrid media={post.post_media} />
 
           {/* Actions */}
-          <div className="flex items-center gap-1 mt-3 -ms-2">
+          <div className="flex items-center gap-0.5 mt-3 -ms-2.5">
             <Button
               variant="ghost"
               size="sm"
-              className={cn("gap-1.5 text-muted-foreground hover:text-accent", optimisticLiked && "text-accent")}
+              className={cn(
+                "gap-1.5 text-muted-foreground/60 hover:text-accent hover:bg-accent/8 rounded-full h-8 px-3 transition-all",
+                optimisticLiked && "text-accent"
+              )}
               onClick={handleLike}
             >
               <AnimatePresence mode="wait">
@@ -136,9 +139,9 @@ export function PostCard({ post, currentUserId, onLike, onDelete, className }: P
                   key={optimisticLiked ? "liked" : "unliked"}
                   initial={{ scale: 0.5 }}
                   animate={{ scale: 1 }}
-                  transition={{ type: "spring", stiffness: 400, damping: 15 }}
+                  transition={{ type: "spring", stiffness: 500, damping: 15 }}
                 >
-                  <Heart className={cn("h-4 w-4", optimisticLiked && "fill-current")} />
+                  <Heart className={cn("h-[15px] w-[15px]", optimisticLiked && "fill-current")} />
                 </motion.div>
               </AnimatePresence>
               {optimisticCount > 0 && <span className="text-body-xs">{optimisticCount}</span>}
@@ -146,14 +149,21 @@ export function PostCard({ post, currentUserId, onLike, onDelete, className }: P
             <Button
               variant="ghost"
               size="sm"
-              className={cn("gap-1.5 text-muted-foreground hover:text-info", showComments && "text-info")}
+              className={cn(
+                "gap-1.5 text-muted-foreground/60 hover:text-info hover:bg-info/8 rounded-full h-8 px-3 transition-all",
+                showComments && "text-info"
+              )}
               onClick={() => setShowComments(!showComments)}
             >
-              <MessageCircle className="h-4 w-4" />
+              <MessageCircle className="h-[15px] w-[15px]" />
               {post.comment_count > 0 && <span className="text-body-xs">{post.comment_count}</span>}
             </Button>
-            <Button variant="ghost" size="sm" className="gap-1.5 text-muted-foreground hover:text-success">
-              <Share2 className="h-4 w-4" />
+            <Button
+              variant="ghost"
+              size="sm"
+              className="gap-1.5 text-muted-foreground/60 hover:text-success hover:bg-success/8 rounded-full h-8 px-3 transition-all"
+            >
+              <Share2 className="h-[15px] w-[15px]" />
             </Button>
           </div>
         </div>

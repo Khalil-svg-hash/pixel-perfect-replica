@@ -24,9 +24,9 @@ export function UserAvatar({ src, name, size = "md", className }: UserAvatarProp
     .slice(0, 2);
 
   return (
-    <Avatar className={cn(sizeClasses[size], className)}>
+    <Avatar className={cn(sizeClasses[size], "ring-2 ring-background", className)}>
       {src && <AvatarImage src={src} alt={name} />}
-      <AvatarFallback className="bg-accent/10 text-accent font-display font-semibold">
+      <AvatarFallback className="gradient-accent text-white font-display font-semibold">
         {initials}
       </AvatarFallback>
     </Avatar>
