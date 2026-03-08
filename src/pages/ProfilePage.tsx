@@ -1,19 +1,71 @@
+import { useInfiniteQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { fetchFeedPosts, toggleLike, deletePost } from "@/lib/posts";
 import { AppShell } from "@/components/layout/AppShell";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { UserAvatar } from "@/components/shared/UserAvatar";
+import { PostCard } from "@/components/shared/PostCard";
+import { FeedSkeleton } from "@/components/shared/Skeletons";
 import { Button } from "@/components/ui/button";
-import { Settings, MapPin, Calendar, Link as LinkIcon, Lock } from "lucide-react";
+import { Settings, MapPin, Calendar, Link as LinkIcon, Lock, Loader2 } from "lucide-react";
 import { useNavigate, useParams } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
+import { useToast } from "@/hooks/use-toast";
 import { format } from "date-fns";
+import { useRef, useCallback } from "react";
 
 const ProfilePage = () => {
   const navigate = useNavigate();
   const { handle } = useParams();
-  const { profile } = useAuth();
+  const { profile, user } = useAuth();
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
+  const observerRef = useRef<IntersectionObserver | null>(null);
 
-  // For now, only show own profile (other users' profiles come in Phase 5)
   const isOwnProfile = !handle;
+
+  const {
+    data,
+    isLoading,
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage,
+  } = useInfiniteQuery({
+    queryKey: ["profile-posts", user?.id],
+    queryFn: ({ pageParam = 0 }) => fetchFeedPosts(pageParam, user?.id),
+    getNextPageParam: (lastPage, allPages) =>
+      lastPage.length === 10 ? allPages.length : undefined,
+    initialPageParam: 0,
+    enabled: !!user?.id && isOwnProfile,
+  });
+
+  const likeMutation = useMutation({
+    mutationFn: ({ postId, isLiked }: { postId: string; isLiked: boolean }) =>
+      toggleLike(postId, user!.id, isLiked),
+    onError: () => queryClient.invalidateQueries({ queryKey: ["profile-posts"] }),
+  });
+
+  const deleteMutation = useMutation({
+    mutationFn: deletePost,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["profile-posts"] });
+      queryClient.invalidateQueries({ queryKey: ["feed"] });
+      toast({ title: "Post deleted" });
+    },
+  });
+
+  const lastPostRef = useCallback(
+    (node: HTMLDivElement | null) => {
+      if (isFetchingNextPage) return;
+      if (observerRef.current) observerRef.current.disconnect();
+      observerRef.current = new IntersectionObserver((entries) => {
+        if (entries[0].isIntersecting && hasNextPage) fetchNextPage();
+      });
+      if (node) observerRef.current.observe(node);
+    },
+    [isFetchingNextPage, hasNextPage, fetchNextPage]
+  );
+
+  const posts = data?.pages.flatMap((page) => page) || [];
 
   return (
     <AppShell>
@@ -35,7 +87,6 @@ const ProfilePage = () => {
           )}
         </div>
 
-        {/* Profile info */}
         <div className="px-4 -mt-10">
           <div className="flex items-end justify-between mb-3">
             <UserAvatar
@@ -57,26 +108,18 @@ const ProfilePage = () => {
 
           <div className="flex items-center gap-2">
             <h2 className="font-display text-display-md">{profile?.display_name || "Your Name"}</h2>
-            {profile?.is_private && (
-              <Lock className="h-4 w-4 text-muted-foreground" />
-            )}
+            {profile?.is_private && <Lock className="h-4 w-4 text-muted-foreground" />}
           </div>
           <p className="text-body-sm text-muted-foreground">@{profile?.handle || "username"}</p>
 
-          {profile?.bio && (
-            <p className="text-body-sm mt-3">{profile.bio}</p>
-          )}
+          {profile?.bio && <p className="text-body-sm mt-3">{profile.bio}</p>}
           {!profile?.bio && isOwnProfile && (
-            <p className="text-body-sm mt-3 text-muted-foreground italic">
-              Add a bio to tell people about yourself
-            </p>
+            <p className="text-body-sm mt-3 text-muted-foreground italic">Add a bio to tell people about yourself</p>
           )}
 
           <div className="flex flex-wrap gap-4 mt-3 text-body-xs text-muted-foreground">
             {profile?.location && (
-              <span className="flex items-center gap-1">
-                <MapPin className="h-3.5 w-3.5" /> {profile.location}
-              </span>
+              <span className="flex items-center gap-1"><MapPin className="h-3.5 w-3.5" /> {profile.location}</span>
             )}
             {profile?.website && (
               <a
@@ -100,7 +143,7 @@ const ProfilePage = () => {
           </div>
         </div>
 
-        {/* Posts tab */}
+        {/* Posts */}
         <div className="border-t border-border mt-4">
           <div className="flex">
             <button className="flex-1 py-3 text-body-sm font-semibold text-center border-b-2 border-accent text-accent">
@@ -110,9 +153,30 @@ const ProfilePage = () => {
               Likes
             </button>
           </div>
-          <div className="py-12 text-center text-body-sm text-muted-foreground">
-            No posts yet
-          </div>
+
+          {isLoading ? (
+            <FeedSkeleton count={2} />
+          ) : posts.length === 0 ? (
+            <div className="py-12 text-center text-body-sm text-muted-foreground">No posts yet</div>
+          ) : (
+            <div>
+              {posts.map((post, index) => (
+                <div key={post.id} ref={index === posts.length - 1 ? lastPostRef : undefined}>
+                  <PostCard
+                    post={post}
+                    currentUserId={user?.id}
+                    onLike={(postId, isLiked) => likeMutation.mutate({ postId, isLiked })}
+                    onDelete={(postId) => deleteMutation.mutate(postId)}
+                  />
+                </div>
+              ))}
+              {isFetchingNextPage && (
+                <div className="flex justify-center py-6">
+                  <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+                </div>
+              )}
+            </div>
+          )}
         </div>
       </div>
     </AppShell>
