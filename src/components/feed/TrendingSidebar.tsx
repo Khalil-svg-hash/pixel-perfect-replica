@@ -1,9 +1,14 @@
 import { GlowCard } from "@/components/ui/glow-card";
-import { AnimatedBadge } from "@/components/ui/animated-badge";
-import { TrendingUp, Users, Flame, Sparkles } from "lucide-react";
+import { TrendingUp, Users, Flame, Sparkles, Loader2 } from "lucide-react";
 import { motion } from "framer-motion";
 import { UserAvatar } from "@/components/shared/UserAvatar";
 import { Button } from "@/components/ui/button";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/contexts/AuthContext";
+import { followUser } from "@/lib/social";
+import { useNavigate } from "react-router-dom";
+import { useState } from "react";
 
 const TRENDING_TOPICS = [
   { tag: "#buildinpublic", posts: 1247, category: "Tech" },
@@ -13,13 +18,56 @@ const TRENDING_TOPICS = [
   { tag: "#startup", posts: 318, category: "Business" },
 ];
 
-const SUGGESTED_USERS = [
-  { name: "Elena Rivera", handle: "elena_dev", bio: "Building cool stuff 🚀" },
-  { name: "Marcus Chen", handle: "marcusc", bio: "Open source enthusiast" },
-  { name: "Aria Johnson", handle: "ariaj", bio: "Designer × Developer" },
-];
+interface SuggestedUser {
+  user_id: string;
+  display_name: string | null;
+  handle: string | null;
+  avatar_url: string | null;
+  bio: string | null;
+  is_private: boolean;
+}
+
+async function fetchSuggestedUsers(currentUserId: string): Promise<SuggestedUser[]> {
+  // Get IDs the user already follows
+  const { data: following } = await supabase
+    .from("follows")
+    .select("following_id")
+    .eq("follower_id", currentUserId);
+
+  const followedIds = (following || []).map((f) => f.following_id);
+  const excludeIds = [currentUserId, ...followedIds];
+
+  const { data, error } = await supabase
+    .from("profiles")
+    .select("user_id, display_name, handle, avatar_url, bio, is_private")
+    .not("user_id", "in", `(${excludeIds.join(",")})`)
+    .limit(5);
+
+  if (error) throw error;
+  return (data || []) as SuggestedUser[];
+}
 
 export function TrendingSidebar() {
+  const { user } = useAuth();
+  const navigate = useNavigate();
+  const queryClient = useQueryClient();
+  const [followedIds, setFollowedIds] = useState<Set<string>>(new Set());
+
+  const { data: suggestedUsers = [], isLoading } = useQuery({
+    queryKey: ["suggested-users", user?.id],
+    queryFn: () => fetchSuggestedUsers(user!.id),
+    enabled: !!user?.id,
+  });
+
+  const followMutation = useMutation({
+    mutationFn: ({ targetUserId, isPrivate }: { targetUserId: string; isPrivate: boolean }) =>
+      followUser(user!.id, targetUserId, isPrivate),
+    onSuccess: (_, { targetUserId }) => {
+      setFollowedIds((prev) => new Set(prev).add(targetUserId));
+      queryClient.invalidateQueries({ queryKey: ["story-users"] });
+    },
+  });
+
   return (
     <div className="space-y-5">
       {/* Trending Topics */}
@@ -65,31 +113,58 @@ export function TrendingSidebar() {
             <Users className="h-4 w-4 text-info" />
             <h3 className="font-display text-display-sm">Who to follow</h3>
           </div>
-          <div className="space-y-4">
-            {SUGGESTED_USERS.map((user, i) => (
-              <motion.div
-                key={user.handle}
-                initial={{ opacity: 0, x: -10 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ delay: 0.3 + i * 0.08 }}
-                className="flex items-center gap-3"
-              >
-                <UserAvatar name={user.name} size="sm" />
-                <div className="flex-1 min-w-0">
-                  <p className="text-body-sm font-semibold truncate">{user.name}</p>
-                  <p className="text-body-xs text-muted-foreground/60 truncate">
-                    @{user.handle}
-                  </p>
-                </div>
-                <Button
-                  size="sm"
-                  className="h-7 px-3.5 text-xs rounded-full gradient-accent text-accent-foreground hover:opacity-90 shadow-sm"
-                >
-                  Follow
-                </Button>
-              </motion.div>
-            ))}
-          </div>
+          {isLoading ? (
+            <div className="flex justify-center py-4">
+              <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
+            </div>
+          ) : suggestedUsers.length === 0 ? (
+            <p className="text-body-xs text-muted-foreground/50 text-center py-3">
+              No suggestions right now
+            </p>
+          ) : (
+            <div className="space-y-4">
+              {suggestedUsers.map((su, i) => {
+                const isFollowed = followedIds.has(su.user_id);
+                return (
+                  <motion.div
+                    key={su.user_id}
+                    initial={{ opacity: 0, x: -10 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ delay: 0.3 + i * 0.08 }}
+                    className="flex items-center gap-3"
+                  >
+                    <button onClick={() => navigate(`/profile/${su.handle}`)}>
+                      <UserAvatar src={su.avatar_url} name={su.display_name || "User"} size="sm" />
+                    </button>
+                    <div className="flex-1 min-w-0">
+                      <button
+                        onClick={() => navigate(`/profile/${su.handle}`)}
+                        className="text-body-sm font-semibold truncate block hover:underline"
+                      >
+                        {su.display_name || "User"}
+                      </button>
+                      <p className="text-body-xs text-muted-foreground/60 truncate">
+                        @{su.handle}
+                      </p>
+                    </div>
+                    <Button
+                      size="sm"
+                      disabled={isFollowed || followMutation.isPending}
+                      className="h-7 px-3.5 text-xs rounded-full gradient-accent text-accent-foreground hover:opacity-90 shadow-sm disabled:opacity-60"
+                      onClick={() =>
+                        followMutation.mutate({
+                          targetUserId: su.user_id,
+                          isPrivate: su.is_private,
+                        })
+                      }
+                    >
+                      {isFollowed ? "Following" : "Follow"}
+                    </Button>
+                  </motion.div>
+                );
+              })}
+            </div>
+          )}
         </div>
       </GlowCard>
 
