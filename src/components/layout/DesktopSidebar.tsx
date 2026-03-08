@@ -1,5 +1,5 @@
 import { Link, useLocation } from "react-router-dom";
-import { Home, Search, PlusSquare, Bell, User, Settings } from "lucide-react";
+import { Home, Search, PlusSquare, Bell, MessageSquare, User, Settings } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useUnreadCount } from "@/hooks/use-notifications";
 
@@ -7,6 +7,7 @@ const mainNav = [
   { to: "/", icon: Home, label: "Home" },
   { to: "/search", icon: Search, label: "Search" },
   { to: "/compose", icon: PlusSquare, label: "Create" },
+  { to: "/messages", icon: MessageSquare, label: "Messages" },
   { to: "/notifications", icon: Bell, label: "Notifications" },
   { to: "/profile", icon: User, label: "Profile" },
 ];
