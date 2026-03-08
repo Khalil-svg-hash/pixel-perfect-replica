@@ -74,16 +74,7 @@ function CommentItem({ comment, currentUserId, onDelete }: {
   const isOwner = currentUserId === comment.user_id;
 
   // Render content with @mentions highlighted
-  const renderContent = (text: string) => {
-    const parts = text.split(/(@\w+)/g);
-    return parts.map((part, i) =>
-      part.startsWith("@") ? (
-        <span key={i} className="text-accent font-medium">{part}</span>
-      ) : (
-        <span key={i}>{part}</span>
-      )
-    );
-  };
+  // renderContent replaced by RichText component
 
   return (
     <motion.div
