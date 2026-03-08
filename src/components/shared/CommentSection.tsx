@@ -3,6 +3,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { fetchComments, createComment, deleteComment, searchUsers, Comment } from "@/lib/comments";
 import { useAuth } from "@/contexts/AuthContext";
 import { UserAvatar } from "./UserAvatar";
+import { RichText } from "./RichText";
 import { Button } from "@/components/ui/button";
 import { Trash2, Send, Loader2, AtSign } from "lucide-react";
 import { cn } from "@/lib/utils";
