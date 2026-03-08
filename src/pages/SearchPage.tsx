@@ -71,6 +71,15 @@ const SearchPage = () => {
   const initialTab = (searchParams.get("tab") as "users" | "posts") || "users";
   const [query, setQuery] = useState(initialQuery);
   const [tab, setTab] = useState<"users" | "posts">(initialTab);
+
+  // Sync from URL params (e.g. hashtag clicks)
+  useEffect(() => {
+    const q = searchParams.get("q");
+    const t = searchParams.get("tab") as "users" | "posts" | null;
+    if (q !== null) setQuery(q);
+    if (t) setTab(t);
+  }, [searchParams]);
+
   const debouncedQuery = useDebounce(query.trim(), 300);
   const { user } = useAuth();
   const queryClient = useQueryClient();
