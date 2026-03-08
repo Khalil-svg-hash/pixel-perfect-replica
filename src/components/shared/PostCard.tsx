@@ -1,6 +1,7 @@
 import { Heart, MessageCircle, Share2, MoreHorizontal, Trash2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { UserAvatar } from "./UserAvatar";
+import { RichText } from "./RichText";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -117,7 +118,7 @@ export function PostCard({ post, currentUserId, onLike, onDelete, className }: P
           </div>
 
           {/* Content */}
-          <p className="text-body-sm mt-1 whitespace-pre-wrap break-words">{post.content}</p>
+          <RichText text={post.content} className="text-body-sm mt-1 whitespace-pre-wrap break-words block" />
 
           {/* Media */}
           <MediaGrid media={post.post_media} />

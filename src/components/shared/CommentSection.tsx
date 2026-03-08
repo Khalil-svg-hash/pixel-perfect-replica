@@ -3,6 +3,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { fetchComments, createComment, deleteComment, searchUsers, Comment } from "@/lib/comments";
 import { useAuth } from "@/contexts/AuthContext";
 import { UserAvatar } from "./UserAvatar";
+import { RichText } from "./RichText";
 import { Button } from "@/components/ui/button";
 import { Trash2, Send, Loader2, AtSign } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -73,16 +74,7 @@ function CommentItem({ comment, currentUserId, onDelete }: {
   const isOwner = currentUserId === comment.user_id;
 
   // Render content with @mentions highlighted
-  const renderContent = (text: string) => {
-    const parts = text.split(/(@\w+)/g);
-    return parts.map((part, i) =>
-      part.startsWith("@") ? (
-        <span key={i} className="text-accent font-medium">{part}</span>
-      ) : (
-        <span key={i}>{part}</span>
-      )
-    );
-  };
+  // renderContent replaced by RichText component
 
   return (
     <motion.div
@@ -105,7 +97,7 @@ function CommentItem({ comment, currentUserId, onDelete }: {
             </button>
           )}
         </div>
-        <p className="text-body-xs mt-0.5 whitespace-pre-wrap break-words">{renderContent(comment.content)}</p>
+        <RichText text={comment.content} className="text-body-xs mt-0.5 whitespace-pre-wrap break-words block" />
       </div>
     </motion.div>
   );
