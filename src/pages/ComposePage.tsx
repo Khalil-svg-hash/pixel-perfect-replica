@@ -11,7 +11,6 @@ const MAX_CHARS = 500;
 
 const ComposePage = () => {
   const [content, setContent] = useState("");
-  const navigate = useNavigate();
   const remaining = MAX_CHARS - content.length;
 
   return (
