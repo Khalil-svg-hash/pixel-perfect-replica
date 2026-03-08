@@ -19,6 +19,8 @@ import ForgotPasswordPage from "./pages/ForgotPasswordPage";
 import ResetPasswordPage from "./pages/ResetPasswordPage";
 import EditProfilePage from "./pages/EditProfilePage";
 import FollowListPage from "./pages/FollowListPage";
+import MessagesPage from "./pages/MessagesPage";
+import ChatPage from "./pages/ChatPage";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
