@@ -1,5 +1,5 @@
 import { Link, useLocation } from "react-router-dom";
-import { Home, Search, PlusSquare, Bell, User, Settings } from "lucide-react";
+import { Home, Search, PlusSquare, Bell, MessageSquare, User, Settings } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useUnreadCount } from "@/hooks/use-notifications";
 

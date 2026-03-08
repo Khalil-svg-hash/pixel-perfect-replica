@@ -7,8 +7,8 @@ const navItems = [
   { to: "/", icon: Home, label: "Home" },
   { to: "/search", icon: Search, label: "Search" },
   { to: "/compose", icon: PlusSquare, label: "Post" },
+  { to: "/messages", icon: MessageSquare, label: "DMs" },
   { to: "/notifications", icon: Bell, label: "Alerts" },
-  { to: "/profile", icon: User, label: "Profile" },
 ];
 
 export function BottomNav() {
