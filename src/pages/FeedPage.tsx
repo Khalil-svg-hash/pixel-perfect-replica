@@ -7,6 +7,7 @@ import { PageHeader } from "@/components/layout/PageHeader";
 import { PostCard } from "@/components/shared/PostCard";
 import { EmptyState } from "@/components/shared/EmptyState";
 import { FeedSkeleton } from "@/components/shared/Skeletons";
+import { PullToRefresh } from "@/components/shared/PullToRefresh";
 import { ComposePrompt } from "@/components/feed/ComposePrompt";
 import { StoriesRow } from "@/components/feed/StoriesRow";
 import { TrendingSidebar } from "@/components/feed/TrendingSidebar";
@@ -32,6 +33,7 @@ const FeedPage = () => {
     fetchNextPage,
     hasNextPage,
     isFetchingNextPage,
+    refetch,
   } = useInfiniteQuery({
     queryKey: ["feed", feedTab, user?.id],
     queryFn: ({ pageParam = 0 }) => 
@@ -77,6 +79,10 @@ const FeedPage = () => {
     [isFetchingNextPage, hasNextPage, fetchNextPage]
   );
 
+  const handleRefresh = useCallback(async () => {
+    await refetch();
+  }, [refetch]);
+
   const posts = data?.pages.flatMap((page) => page) || [];
 
   return (
@@ -111,48 +117,50 @@ const FeedPage = () => {
       </div>
 
       <FeedLayout sidebar={<TrendingSidebar />}>
-        {/* Stories row */}
-        <StoriesRow />
+        <PullToRefresh onRefresh={handleRefresh}>
+          {/* Stories row */}
+          <StoriesRow />
 
-        {/* Compose prompt */}
-        <ComposePrompt />
+          {/* Compose prompt */}
+          <ComposePrompt />
 
-        {/* Feed content */}
-        {isLoading ? (
-          <FeedSkeleton />
-        ) : posts.length === 0 ? (
-          <EmptyState
-            icon={feedTab === "following" ? Users : Newspaper}
-            title={feedTab === "following" ? "No posts yet" : "Your feed is empty"}
-            description={feedTab === "following" 
-              ? "Follow some people to see their posts here."
-              : "Create your first post or follow people to see their posts here."}
-            action={feedTab === "following" 
-              ? { label: "Find People", onClick: () => navigate("/search") }
-              : { label: "Create Post", onClick: () => navigate("/compose") }}
-          />
-        ) : (
-          <div>
-            {posts.map((post, index) => (
-              <div
-                key={post.id}
-                ref={index === posts.length - 1 ? lastPostRef : undefined}
-              >
-                <PostCard
-                  post={post}
-                  currentUserId={user?.id}
-                  onLike={(postId, isLiked) => likeMutation.mutate({ postId, isLiked })}
-                  onDelete={(postId) => deleteMutation.mutate(postId)}
-                />
-              </div>
-            ))}
-            {isFetchingNextPage && (
-              <div className="flex justify-center py-6">
-                <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
-              </div>
-            )}
-          </div>
-        )}
+          {/* Feed content */}
+          {isLoading ? (
+            <FeedSkeleton />
+          ) : posts.length === 0 ? (
+            <EmptyState
+              icon={feedTab === "following" ? Users : Newspaper}
+              title={feedTab === "following" ? "No posts yet" : "Your feed is empty"}
+              description={feedTab === "following" 
+                ? "Follow some people to see their posts here."
+                : "Create your first post or follow people to see their posts here."}
+              action={feedTab === "following" 
+                ? { label: "Find People", onClick: () => navigate("/search") }
+                : { label: "Create Post", onClick: () => navigate("/compose") }}
+            />
+          ) : (
+            <div>
+              {posts.map((post, index) => (
+                <div
+                  key={post.id}
+                  ref={index === posts.length - 1 ? lastPostRef : undefined}
+                >
+                  <PostCard
+                    post={post}
+                    currentUserId={user?.id}
+                    onLike={(postId, isLiked) => likeMutation.mutate({ postId, isLiked })}
+                    onDelete={(postId) => deleteMutation.mutate(postId)}
+                  />
+                </div>
+              ))}
+              {isFetchingNextPage && (
+                <div className="flex justify-center py-6">
+                  <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+                </div>
+              )}
+            </div>
+          )}
+        </PullToRefresh>
       </FeedLayout>
     </AppShell>
   );
