@@ -122,10 +122,15 @@ const FeedPage = () => {
           <FeedSkeleton />
         ) : posts.length === 0 ? (
           <EmptyState
-            icon={Newspaper}
-            title="Your feed is empty"
-            description="Create your first post or follow people to see their posts here."
-            action={{ label: "Create Post", onClick: () => navigate("/compose") }}
+            icon={feedTab === "following" ? Users : Newspaper}
+            title={feedTab === "following" ? "No posts yet" : "Your feed is empty"}
+            description={feedTab === "following" 
+              ? "Follow some people to see their posts here."
+              : "Create your first post or follow people to see their posts here."}
+            action={feedTab === "following" 
+              ? { label: "Find People", onClick: () => navigate("/search") }
+              : { label: "Create Post", onClick: () => navigate("/compose") }}
+          />
           />
         ) : (
           <div>
