@@ -56,6 +56,48 @@ export async function fetchFeedPosts(page: number, userId?: string): Promise<Fee
   }));
 }
 
+export async function fetchFollowingFeedPosts(page: number, currentUserId: string): Promise<FeedPost[]> {
+  const from = page * PAGE_SIZE;
+  const to = from + PAGE_SIZE - 1;
+
+  // Get list of followed user IDs
+  const { data: followedUsers, error: followError } = await supabase
+    .from("follows")
+    .select("following_id")
+    .eq("follower_id", currentUserId)
+    .eq("status", "accepted");
+
+  if (followError) throw followError;
+
+  const followedIds = (followedUsers || []).map((f) => f.following_id);
+
+  if (followedIds.length === 0) {
+    return [];
+  }
+
+  const { data, error } = await supabase
+    .from("posts")
+    .select(`
+      id, user_id, content, visibility, is_edited, created_at,
+      profiles!posts_user_id_profiles_fkey(display_name, handle, avatar_url),
+      post_media(id, url, media_type, position),
+      likes(user_id),
+      comments(id)
+    `)
+    .in("user_id", followedIds)
+    .order("created_at", { ascending: false })
+    .range(from, to);
+
+  if (error) throw error;
+
+  return (data || []).map((post: any) => ({
+    ...post,
+    post_media: (post.post_media || []).sort((a: any, b: any) => a.position - b.position),
+    like_count: (post.likes || []).length,
+    comment_count: (post.comments || []).length,
+  }));
+}
+
 export async function createPost(
   userId: string,
   content: string,
