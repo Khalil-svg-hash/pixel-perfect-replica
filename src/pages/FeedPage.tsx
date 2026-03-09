@@ -1,5 +1,5 @@
 import { useInfiniteQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { fetchFeedPosts, toggleLike, deletePost } from "@/lib/posts";
+import { fetchFeedPosts, fetchFollowingFeedPosts, toggleLike, deletePost } from "@/lib/posts";
 import { useAuth } from "@/contexts/AuthContext";
 import { AppShell } from "@/components/layout/AppShell";
 import { FeedLayout } from "@/components/layout/FeedLayout";
@@ -10,7 +10,7 @@ import { FeedSkeleton } from "@/components/shared/Skeletons";
 import { ComposePrompt } from "@/components/feed/ComposePrompt";
 import { StoriesRow } from "@/components/feed/StoriesRow";
 import { TrendingSidebar } from "@/components/feed/TrendingSidebar";
-import { Newspaper, Loader2 } from "lucide-react";
+import { Newspaper, Users, Loader2 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useRef, useCallback } from "react";
 import { useToast } from "@/hooks/use-toast";
@@ -33,8 +33,11 @@ const FeedPage = () => {
     hasNextPage,
     isFetchingNextPage,
   } = useInfiniteQuery({
-    queryKey: ["feed"],
-    queryFn: ({ pageParam = 0 }) => fetchFeedPosts(pageParam),
+    queryKey: ["feed", feedTab, user?.id],
+    queryFn: ({ pageParam = 0 }) => 
+      feedTab === "following" && user?.id
+        ? fetchFollowingFeedPosts(pageParam, user.id)
+        : fetchFeedPosts(pageParam),
     getNextPageParam: (lastPage, allPages) => {
       return lastPage.length === 10 ? allPages.length : undefined;
     },
@@ -119,10 +122,14 @@ const FeedPage = () => {
           <FeedSkeleton />
         ) : posts.length === 0 ? (
           <EmptyState
-            icon={Newspaper}
-            title="Your feed is empty"
-            description="Create your first post or follow people to see their posts here."
-            action={{ label: "Create Post", onClick: () => navigate("/compose") }}
+            icon={feedTab === "following" ? Users : Newspaper}
+            title={feedTab === "following" ? "No posts yet" : "Your feed is empty"}
+            description={feedTab === "following" 
+              ? "Follow some people to see their posts here."
+              : "Create your first post or follow people to see their posts here."}
+            action={feedTab === "following" 
+              ? { label: "Find People", onClick: () => navigate("/search") }
+              : { label: "Create Post", onClick: () => navigate("/compose") }}
           />
         ) : (
           <div>
