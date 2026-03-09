@@ -66,15 +66,6 @@ export function PullToRefresh({ onRefresh, children, className }: PullToRefreshP
     
     startYRef.current = null;
   }, [pullDistance, isRefreshing, onRefresh]);
-        setIsRefreshing(false);
-        setPullDistance(0);
-      }
-    } else {
-      setPullDistance(0);
-    }
-    
-    startYRef.current = null;
-  }, [pullDistance, isRefreshing, onRefresh]);
 
   const progress = Math.min(pullDistance / PULL_THRESHOLD, 1);
   const shouldTrigger = pullDistance >= PULL_THRESHOLD;
