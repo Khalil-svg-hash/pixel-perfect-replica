@@ -46,12 +46,26 @@ export function PullToRefresh({ onRefresh, children, className }: PullToRefreshP
     if (startYRef.current === null) return;
     
     if (pullDistance >= PULL_THRESHOLD && !isRefreshing) {
+      // Trigger haptic feedback on supported devices
+      if (navigator.vibrate) {
+        navigator.vibrate(10);
+      }
+      
       setIsRefreshing(true);
       setPullDistance(PULL_THRESHOLD / 2);
       
       try {
         await onRefresh();
       } finally {
+        setIsRefreshing(false);
+        setPullDistance(0);
+      }
+    } else {
+      setPullDistance(0);
+    }
+    
+    startYRef.current = null;
+  }, [pullDistance, isRefreshing, onRefresh]);
         setIsRefreshing(false);
         setPullDistance(0);
       }
