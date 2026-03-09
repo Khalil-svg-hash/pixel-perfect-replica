@@ -131,7 +131,6 @@ const FeedPage = () => {
               ? { label: "Find People", onClick: () => navigate("/search") }
               : { label: "Create Post", onClick: () => navigate("/compose") }}
           />
-          />
         ) : (
           <div>
             {posts.map((post, index) => (
